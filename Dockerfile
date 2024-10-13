@@ -22,7 +22,7 @@ RUN wget https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemo
 
 WORKDIR /app
 
-COPY --from=build /app/target/api-gateway-0.0.1.jar /app/api-gateway-0.0.1.jar
+COPY --from=build /app/target/gateway-0.0.1.jar /app/gateway-0.0.1.jar
 
 EXPOSE 8080
 
@@ -30,4 +30,4 @@ CMD /usr/bin/xray -o -n sa-east-1 & \
     echo "Starting xray daemon..." && \
     timeout 15 sh -c 'until nc -z localhost 2000; do sleep 1; done' && \
     echo "X-Ray Daemon is running." && \
-    java -jar /app/api-gateway-0.0.1.jar
+    java -jar /app/gateway-0.0.1.jar
