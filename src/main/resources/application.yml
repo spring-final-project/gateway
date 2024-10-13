@@ -1,0 +1,130 @@
+server:
+  port: ${PORT:8080}
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+      - id: auth-doc
+        uri: lb://auth-ms
+        predicates:
+          - Path=/api/auth/swagger-ui/**,/api/auth/v3/api-docs/**
+      - id: auth-ms
+        uri: lb://auth-ms
+        predicates:
+        - Path=/api/auth/**
+        filters:
+          - name: JwtGeneratorFilter
+      - id: users-doc
+        uri: lb://users-ms
+        predicates:
+          - Path=/api/users/swagger-ui/**,/api/users/v3/api-docs/**
+      - id: users-public
+        uri: lb://users-ms
+        predicates:
+        - Method=POST
+        - Path=/api/users
+      - id: users-private
+        uri: lb://users-ms
+        predicates:
+        - Path=/api/users,/api/users/{id}
+        filters:
+          - name: JwtAuthenticationFilter
+      - id: rooms-doc
+        uri: lb://rooms-ms
+        predicates:
+          - Path=/api/rooms/swagger-ui/**,/api/rooms/v3/api-docs/**
+      - id: rooms-any-role
+        uri: lb://rooms-ms
+        predicates:
+          - Method=GET
+          - Path=/api/rooms/**
+        filters:
+          - name: JwtAuthenticationFilter
+      - id: rooms-owners
+        uri: lb://rooms-ms
+        predicates:
+          - Path=/api/rooms/**
+        filters:
+          - name: JwtAuthenticationFilter
+            args:
+              allowedRoles: OWNER
+      - id: asks-doc
+        uri: lb://asks-ms
+        predicates:
+          - Path=/api/asks/swagger-ui/**,/api/asks/v3/api-docs/**
+      - id: asks-customers
+        uri: lb://asks-ms
+        predicates:
+        - Method=POST
+        - Path=/api/asks
+        filters:
+          - name: JwtAuthenticationFilter
+            args:
+              allowedRoles: CUSTOMER
+      - id: asks-any-role
+        uri: lb://asks-ms
+        predicates:
+          - Method=GET
+          - Path=/api/asks/**
+        filters:
+          - name: JwtAuthenticationFilter
+      - id: asks-owners
+        uri: lb://asks-ms
+        predicates:
+          - Path=/api/asks/**
+        filters:
+          - name: JwtAuthenticationFilter
+            args:
+              allowedRoles: OWNER
+      - id: bookings-doc
+        uri: lb://bookings-ms
+        predicates:
+          - Path=/api/bookings/swagger-ui/**,/api/bookings/v3/api-docs/**
+      - id: bookings-customers
+        uri: lb://bookings-ms
+        predicates:
+          - Method=POST
+          - Path=/api/bookings/**
+        filters:
+          - name: JwtAuthenticationFilter
+            args:
+              allowedRoles: CUSTOMER
+      - id: bookings-any-role
+        uri: lb://bookings-ms
+        predicates:
+          - Method=GET
+          - Path=/api/bookings/**
+        filters:
+          - name: JwtAuthenticationFilter
+      - id: bookings-owners
+        uri: lb://bookings-ms
+        predicates:
+          - Path=/api/bookings/**
+        filters:
+          - name: JwtAuthenticationFilter
+            args:
+              allowedRoles: OWNER
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${spring-application.instance_id:${random.value}}
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT}/eureka/
+
+jwt:
+  secret: ${JWT_SECRET}
+
+com:
+  amazonaws:
+    xray:
+      emitters:
+        daemon-address: 127.0.0.1:2000

@@ -1,0 +1,121 @@
+server:
+  port: ${PORT:8080}
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+      - id: auth-doc
+        uri: http://localhost:9090
+        predicates:
+          - Path=/api/auth/swagger-ui/**,/api/auth/v3/api-docs/**
+      - id: auth-ms
+        uri: http://localhost:9090
+        predicates:
+        - Path=/api/auth/**
+        filters:
+          - name: JwtGeneratorFilter
+      - id: users-doc
+        uri: http://localhost:9090
+        predicates:
+          - Path=/api/users/swagger-ui/**,/api/users/v3/api-docs/**
+      - id: users-public
+        uri: http://localhost:9090
+        predicates:
+        - Method=POST
+        - Path=/api/users
+      - id: users-private
+        uri: http://localhost:9090
+        predicates:
+        - Path=/api/users,/api/users/{id}
+        filters:
+          - name: JwtAuthenticationFilter
+      - id: rooms-doc
+        uri: http://localhost:9090
+        predicates:
+          - Path=/api/rooms/swagger-ui/**,/api/rooms/v3/api-docs/**
+      - id: rooms-any-role
+        uri: http://localhost:9090
+        predicates:
+          - Method=GET
+          - Path=/api/rooms/**
+        filters:
+          - name: JwtAuthenticationFilter
+      - id: rooms-owners
+        uri: http://localhost:9090
+        predicates:
+          - Path=/api/rooms/**
+        filters:
+          - name: JwtAuthenticationFilter
+            args:
+              allowedRoles: OWNER
+      - id: asks-doc
+        uri: http://localhost:9090
+        predicates:
+          - Path=/api/asks/swagger-ui/**,/api/asks/v3/api-docs/**
+      - id: asks-customers
+        uri: http://localhost:9090
+        predicates:
+        - Method=POST
+        - Path=/api/asks
+        filters:
+          - name: JwtAuthenticationFilter
+            args:
+              allowedRoles: CUSTOMER
+      - id: asks-any-role
+        uri: http://localhost:9090
+        predicates:
+          - Method=GET
+          - Path=/api/asks/**
+        filters:
+          - name: JwtAuthenticationFilter
+      - id: asks-owners
+        uri: http://localhost:9090
+        predicates:
+          - Path=/api/asks/**
+        filters:
+          - name: JwtAuthenticationFilter
+            args:
+              allowedRoles: OWNER
+      - id: bookings-doc
+        uri: http://localhost:9090
+        predicates:
+          - Path=/api/bookings/swagger-ui/**,/api/bookings/v3/api-docs/**
+      - id: bookings-customers
+        uri: http://localhost:9090
+        predicates:
+          - Method=POST
+          - Path=/api/bookings/**
+        filters:
+          - name: JwtAuthenticationFilter
+            args:
+              allowedRoles: CUSTOMER
+      - id: bookings-any-role
+        uri: http://localhost:9090
+        predicates:
+          - Method=GET
+          - Path=/api/bookings/**
+        filters:
+          - name: JwtAuthenticationFilter
+      - id: bookings-owners
+        uri: http://localhost:9090
+        predicates:
+          - Path=/api/bookings/**
+        filters:
+          - name: JwtAuthenticationFilter
+            args:
+              allowedRoles: OWNER
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+jwt:
+  secret: ${JWT_SECRET}
