@@ -40,6 +40,10 @@ spring:
         uri: lb://rooms-ms
         predicates:
           - Path=/api/rooms/swagger-ui/**,/api/rooms/v3/api-docs/**
+      - id: rooms-local-images
+        uri: lb://rooms-ms
+        predicates:
+          - Path=/rooms/**
       - id: rooms-any-role
         uri: lb://rooms-ms
         predicates:
