@@ -115,6 +115,10 @@ spring:
           - name: JwtAuthenticationFilter
             args:
               allowedRoles: OWNER
+      - id: receipts-local-images
+        uri: lb://receipts-ms
+        predicates:
+          - Path=/receipts/**
 eureka:
   instance:
     instance-id: ${spring.application.name}:${spring-application.instance_id:${random.value}}
